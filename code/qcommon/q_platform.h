@@ -306,6 +306,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 //===========================================================================
 
+#ifdef __EMSCRIPTEN__
+#define OS_STRING "WASM"
+#define ID_INLINE inline
+#define PATH_SEP '/'
+#define ARCH_STRING "unknown"
+#define DLL_EXT ".so"
+#define Q3_LITTLE_ENDIAN
+#endif
+
 //catch missing defines in above blocks
 #if !defined( OS_STRING )
 #error "Operating system not supported"

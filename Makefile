@@ -5,6 +5,7 @@
 #
 COMPILE_PLATFORM=$(shell uname | sed -e 's/_.*//' | tr '[:upper:]' '[:lower:]' | sed -e 's/\//_/g')
 COMPILE_ARCH=$(shell uname -m | sed -e 's/i.86/x86/' | sed -e 's/^arm.*/arm/')
+COMPILE_PLATFORM=WASM
 
 #arm64 hack!
 ifeq ($(shell uname -m), arm64)
@@ -56,6 +57,10 @@ endif
 #
 #############################################################################
 -include Makefile.local
+
+ifeq ($(COMPILE_PLATFORM), WASM)
+  PLATFORM=WASM
+endif
 
 ifeq ($(COMPILE_PLATFORM),cygwin)
   PLATFORM=mingw32
@@ -1037,8 +1042,17 @@ ifeq ($(PLATFORM),sunos)
 
   CLIENT_LIBS +=$(SDL_LIBS) -lX11 -lXext -liconv -lm
   RENDERER_LIBS = $(SDL_LIBS)
-
 else # ifeq sunos
+#############################################################################
+# SETUP AND BUILD -- WASM
+#############################################################################
+ifeq ($(PLATFORM), WASM)
+	CC=emcc
+  	OPTIMIZE = -O2
+  	CLIENT_CFLAGS += "-sUSE_SDL=2"
+  	LDFLAGS += "-sINITIAL_MEMORY=134217728"
+  	TOOLS_CFLAGS += -DARCH_STRING=\"unknown\"
+else # ifeq WASM
 
 #############################################################################
 # SETUP AND BUILD -- GENERIC
@@ -1058,6 +1072,7 @@ endif #OpenBSD
 endif #NetBSD
 endif #IRIX
 endif #SunOS
+endif #WASM
 
 ifndef CC
   CC=gcc
@@ -2759,7 +2774,7 @@ $(B)/client/%.o: $(ASMDIR)/%.s
 
 # k8 so inline assembler knows about SSE
 $(B)/client/%.o: $(ASMDIR)/%.c
-	$(DO_CC) -march=k8
+	$(DO_CC)
 
 $(B)/client/snd_altivec.o: $(CDIR)/snd_altivec.c
 	$(DO_CC_ALTIVEC)
@@ -2849,7 +2864,7 @@ $(B)/ded/%.o: $(ASMDIR)/%.s
 
 # k8 so inline assembler knows about SSE
 $(B)/ded/%.o: $(ASMDIR)/%.c
-	$(DO_CC) -march=k8
+	$(DO_CC)
 
 $(B)/ded/%.o: $(SDIR)/%.c
 	$(DO_DED_CC)
